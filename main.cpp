@@ -7,7 +7,8 @@ using std::vector;
 
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 void destroy_win(WINDOW *local_win);
-void execute(const char *command, std::vector<char[256]> queue);
+//void execute(const char *command, std::vector<char[256]> queue);
+void execute(const char command[256]);
 void refreshQueue();
 
 int main(int argc, char *argv[])
@@ -52,6 +53,8 @@ int main(int argc, char *argv[])
         mvwgetstr(command_win, 1, 4, command);
 		
 		//execute(command, queue);
+		execute(command);
+		
 
 		for(int i = 4; i < COLS * 2 / 3 - 2; i++)
 			mvwprintw(command_win, 1, i, " ");
@@ -78,9 +81,19 @@ void destroy_win(WINDOW *local_win) {
 	delwin(local_win);
 }
  
-/*void execute(const char command[256], std::vector<char[256]> queue) {
-	queue.push_back(command);
-}*/
+void execute(const char command[256]) {
+	if(strcmp(command, "exit") == 0) {
+		endwin();
+		//system("clear");
+		exit(0);
+	}
+}
+
+//void execute(const char command[256], std::vector<char[256]> queue) {
+//	queue.push_back(command);
+//	if(strcmp(command, "exit") == 0)
+//		exit(0);
+//}
 
 /*void refreshQueue(std::vector<char[256]> queue) {
 	for(std::vector<char[256]>::reverse_iterator it = v.rbegin(); it != v.rend(); ++it) {
