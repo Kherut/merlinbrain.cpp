@@ -7,16 +7,16 @@ using std::vector;
 
 WINDOW *create_newwin(int height, int width, int starty, int startx);
 void destroy_win(WINDOW *local_win);
-//void execute(const char *command, std::vector<char[256]> queue);
-void execute(const char command[256]);
-void refreshQueue();
+void execute(const char *command, std::vector<std::string> queue);
+void addQueue(int index, std::vector<std::string> queue, WINDOW *queue_win, const char* command);
 
 int main(int argc, char *argv[])
 {	
 	WINDOW *devices_win, *command_win, *queue_win;
 	int x, y;
 	char command[256];
-	std::vector<char[256]> queue;
+	std::vector<std::string> queue;
+	int index = 1;
 
 	initscr();
 	cbreak();
@@ -52,9 +52,13 @@ int main(int argc, char *argv[])
 	while (true) {
         mvwgetstr(command_win, 1, 4, command);
 		
-		//execute(command, queue);
-		execute(command);
-		
+		if(strcmp(command, "force_exit") == 0) {
+			endwin();
+			return 0;
+		}
+
+		addQueue(index, queue, queue_win, command);
+		index++;
 
 		for(int i = 4; i < COLS * 2 / 3 - 2; i++)
 			mvwprintw(command_win, 1, i, " ");
@@ -80,23 +84,9 @@ void destroy_win(WINDOW *local_win) {
 	wrefresh(local_win);
 	delwin(local_win);
 }
- 
-void execute(const char command[256]) {
-	if(strcmp(command, "exit") == 0) {
-		endwin();
-		//system("clear");
-		exit(0);
-	}
+
+void addQueue(int index, std::vector<std::string> queue, WINDOW *queue_win, const char* command) {
+	mvwprintw(queue_win, index, 1, command);
+
+	wrefresh(queue_win);
 }
-
-//void execute(const char command[256], std::vector<char[256]> queue) {
-//	queue.push_back(command);
-//	if(strcmp(command, "exit") == 0)
-//		exit(0);
-//}
-
-/*void refreshQueue(std::vector<char[256]> queue) {
-	for(std::vector<char[256]>::reverse_iterator it = v.rbegin(); it != v.rend(); ++it) {
-
-	}
-}*/
