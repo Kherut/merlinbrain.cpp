@@ -1,7 +1,7 @@
-# merlinbrain.cpp
-An open-source Merlin Brain client in C++.
+# merlinbrain.go
+An open-source Merlin Brain client in Go.
 
 Compile with
 ```
-g++ main.cpp -o app -lncurses
+go build main.go
 ```

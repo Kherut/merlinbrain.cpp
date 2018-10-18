@@ -1,0 +1,96 @@
+@font-face {
+    font-family: "Lane";
+    src: url("/dashboard/src/fonts/lane.ttf");
+}
+
+body {
+    background: white;
+    margin-top: 195px;
+}
+
+header {
+    width: 100%;
+}
+
+header .logo {
+    height: 90px;
+    margin: 0;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: invert(1);
+}
+
+header .menu {
+    position: absolute;
+    top: 130px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+header .menu a {
+    color: black;
+    text-decoration: none;
+    font-size: 22px;
+    font-family: "Lane", monospace;
+    letter-spacing: 1px;
+    padding: 5px 8px;
+    border-bottom: solid 1px transparent;
+    border-top: solid 1px transparent;
+    transition: 0.1s ease-out all;
+}
+
+header .menu a:hover {
+    border-bottom-color: black;
+    border-top-color: black;
+}
+
+header .menu::before {
+    content: "";
+    width: 250px;
+    height: 1px;
+    background: black;
+    display: block;
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+header .menu::after {
+    content: "";
+    width: 150px;
+    height: 1px;
+    background: black;
+    display: block;
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+section .title {
+    display: inline-block;
+    font-weight: normal;
+    font-family: "Lane", monospace;
+    font-size: 36px;
+    margin: auto;
+    text-align: center;
+}
+
+section .title::after {
+    content: "";
+    display: block;
+    width: 50px;
+    height: 1px;
+    background: black;
+    margin: 8px auto;
+}
