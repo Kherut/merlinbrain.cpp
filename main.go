@@ -2,7 +2,7 @@ package main
 
 import (
 	"net/http"
-	"os/exec"
+	"os"
 	"strings"
 )
 
@@ -20,18 +20,19 @@ func main() {
 
 		w.Write([]byte(command))
 
+		file, err := os.Open("/sys/class/leds/red_led/brightness")
+
+		w.Write([]byte("\n\nStatus: " + err.Error()))
+
 		switch command {
 		case "led/on":
-			cmd := exec.Command("echo", "1 > /sys/class/leds/red_led/brightness")
-			err := cmd.Run()
+			file.Write([]byte("1"))
 
-			w.Write([]byte("\n\n" + "Status: " + err.Error()))
 		case "led/off":
-			cmd := exec.Command("echo", "0 > /sys/class/leds/red_led/brightness")
-			err := cmd.Run()
-
-			w.Write([]byte("\n\n" + "Status: " + err.Error()))
+			file.Write([]byte("0"))
 		}
+
+		file.Close()
 	})
 
 	http.HandleFunc("/", redirectDashboard)
