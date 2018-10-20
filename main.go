@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os/exec"
 	"strings"
 )
 
@@ -18,6 +19,19 @@ func main() {
 		command := strings.Join(strings.Split(r.URL.Path[1:], "/")[1:], "/")
 
 		w.Write([]byte(command))
+
+		switch command {
+		case "led/on":
+			cmd := exec.Command("echo 1 > /sys/class/leds/red_led/brightness")
+			err := cmd.Run()
+
+			w.Write([]byte("\n\n" + "Status: " + err.Error()))
+		case "led/off":
+			cmd := exec.Command("echo 0 > /sys/class/leds/red_led/brightness")
+			err := cmd.Run()
+
+			w.Write([]byte("\n\n" + "Status: " + err.Error()))
+		}
 	})
 
 	http.HandleFunc("/", redirectDashboard)
