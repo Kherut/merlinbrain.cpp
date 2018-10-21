@@ -28,7 +28,7 @@
                 <p>CPU temperature: <span id="cpu_temperature"></span></p>
                 <p>Uptime: <span id="uptime"></span></p>
             </div>
-            <h1 class="title">temperature chart</h1>
+            <h1 class="title">CPU temperature chart</h1>
             <div class="ct-chart"></div>
         </section>
 
@@ -57,7 +57,7 @@
                 dateAndTemperature = [];
                 var data = d.split("\n");
 
-                for(var i = 0; i < data.length; i++)
+                for(var i = 0; i < data.length - 1; i++)
                     dateAndTemperature.push({meta: data[i].split("#")[0], value: parseInt(data[i].split("#")[1])})
 
                 var data = {
@@ -70,10 +70,7 @@
                     fullWidth: true,
                     height: 350,
                     lineSmooth: false,
-                    showPoint: false,
-                    plugins: [
-                        Chartist.plugins.tooltip()
-                    ]
+                    showPoint: false
                 };
 
                 var ch = new Chartist.Line('.ct-chart', data, options);
