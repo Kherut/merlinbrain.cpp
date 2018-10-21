@@ -5,13 +5,28 @@ import (
 	"net/http"
 	"os/exec"
 	"strings"
+
+	"github.com/robfig/cron"
 )
 
 func redirectDashboard(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/dashboard/", 301)
 }
 
+func runCmd(cmd string) string {
+	out, err := exec.Command("sh", "-c", cmd).Output()
+	_ = err
+
+	return string(out)
+}
+
 func main() {
+	c := cron.New()
+	c.AddFunc("@every 1s", func() {
+		runCmd("echo " + runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp") + " >> data/temperature.data")
+	})
+	c.Start()
+
 	//DASHBOARD AT /dashboard
 	http.Handle("/dashboard/", http.StripPrefix("/dashboard/", http.FileServer(http.Dir("template"))))
 
@@ -22,6 +37,19 @@ func main() {
 		w.Write([]byte(command))
 
 		category := strings.Split(command, "/")[0]
+
+		if len(strings.Split(command, "/")) > 1 {
+			arg := strings.Split(command, "/")[1]
+		}
+
+		if category == "info" {
+			if  {
+				switch arg {
+				case "temperature":
+					w.Write([]byte(runCmd("cat data/temperature.data")))
+				}
+			}
+		}
 
 		if category == "led" {
 			if len(strings.Split(command, "/")) > 1 {
@@ -37,13 +65,11 @@ func main() {
 					cmd = "echo 0 > /sys/class/leds/red_led/brightness"
 				}
 
-				out, err := exec.Command("sh", "-c", cmd).Output()
-				_ = err
+				output := runCmd(cmd)
 
-				if len(out) > 0 {
-					w.Write([]byte("\n\nOutput: "))
-					w.Write(out)
-					fmt.Println(out)
+				if len(output) > 0 {
+					w.Write([]byte("\n\nOutput: " + output))
+					fmt.Println(output)
 				}
 			}
 		}

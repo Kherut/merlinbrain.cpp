@@ -5,8 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link href="/dashboard/src/css/style.css" rel="stylesheet" type="text/css" />
+        <link href="/dashboard/src/css/chartist.min.css" rel="stylesheet" type="text/css" />
 
         <title>Merlin Brain</title>
+
+        <script src="/dashboard/src/js/jquery.min.js"></script>
     </head>
     <body>
         <header>
@@ -20,7 +23,33 @@
             </nav>
         </header>
         <section>
-            <h1 class="title">overview</h1>
+            <div class="ct-chart .ct-major-twelfth"></div>
         </section>
+
+        <script src="/dashboard/src/js/chartist.min.js"></script>
+        <script>
+            var temperature = [];
+
+            $.ajax({
+                url: "/control/info/temperature"
+            }).done(function (d) {
+                temperature = d.split("\n");
+            });
+
+            var data = {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                series: [
+                    temperature
+                ]
+            };
+
+            var options = {
+                width: 300,
+                height: 200,
+                lineSmooth: false
+            };
+
+            new Chartist.Line('.ct-chart', data, options);
+        </script>
     </body>
 </html>
