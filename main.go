@@ -1,8 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
-	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -20,19 +21,32 @@ func main() {
 
 		w.Write([]byte(command))
 
-		file, err := os.Open("/sys/class/leds/red_led/brightness")
+		category := strings.Split(command, "/")[0]
 
-		w.Write([]byte("\n\nStatus: " + err.Error()))
+		if category == "led" {
+			if len(strings.Split(command, "/")) > 1 {
+				arg := strings.Split(command, "/")[1]
 
-		switch command {
-		case "led/on":
-			file.Write([]byte("1"))
+				var cmd string
 
-		case "led/off":
-			file.Write([]byte("0"))
+				switch arg {
+				case "on":
+					cmd = "echo 1 > /sys/class/leds/red_led/brightness"
+
+				case "off":
+					cmd = "echo 0 > /sys/class/leds/red_led/brightness"
+				}
+
+				out, err := exec.Command("sh", "-c", cmd).Output()
+				_ = err
+
+				if len(out) > 0 {
+					w.Write([]byte("\n\nOutput: "))
+					w.Write(out)
+					fmt.Println(out)
+				}
+			}
 		}
-
-		file.Close()
 	})
 
 	http.HandleFunc("/", redirectDashboard)
