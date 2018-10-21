@@ -40,16 +40,18 @@
             });
 
             var data = {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
                 series: [
                     dateAndTemperature
                 ]
             };
 
             var options = {
-                width: 300,
+                fullWidth: true,
                 height: 200,
-                lineSmooth: false
+                lineSmooth: false,
+                plugins: [
+                    Chartist.plugins.tooltip()
+                ]
             };
 
             new Chartist.Line('.ct-chart', data, options);
