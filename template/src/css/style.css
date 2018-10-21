@@ -72,13 +72,27 @@ header .menu::after {
 }
 
 section {
-    display: flex;
     justify-content: center;
     align-items: center;
 }
 
+section .container {
+    margin: auto;
+    font-family: "Lane", monospace;
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+section .container * {
+    margin: 0;
+}
+
+p span {
+    display: inline;
+}
+
 section .title {
-    display: inline-block;
     font-weight: normal;
     font-family: "Lane", monospace;
     font-size: 36px;

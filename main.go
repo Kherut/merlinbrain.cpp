@@ -26,7 +26,7 @@ func main() {
 
 	counter := 0
 
-	c.AddFunc("@every 1s", func() {
+	c.AddFunc("0 0 * * * *", func() {
 		currentTime := time.Now()
 
 		cmd := "echo " + currentTime.Format("2006.01.02-15:04:05") + "#" + strings.Split(runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp"), "\n")[0] + " >> ./data/temperature.data"
@@ -39,6 +39,7 @@ func main() {
 
 		counter += 1
 	})
+
 	c.Start()
 
 	//DASHBOARD AT /dashboard
@@ -57,8 +58,6 @@ func main() {
 		}
 
 		if category == "info" {
-			fmt.Println(arg)
-
 			switch arg[0] {
 			case "temperature":
 				if len(arg) > 1 {
@@ -68,6 +67,8 @@ func main() {
 				} else {
 					w.Write([]byte(runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp")))
 				}
+			case "uptime":
+				w.Write([]byte(strings.Split(runCmd("cat /proc/uptime"), ".")[0]))
 			}
 		} else if category == "led" {
 			var cmd string

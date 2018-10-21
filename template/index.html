@@ -23,9 +23,30 @@
             </nav>
         </header>
         <section>
-            <div class="ct-chart .ct-major-twelfth"></div>
+            <h1 class="title">info</h1>
+            <div class="container">
+                <p>CPU temperature: <span id="cpu_temperature"></span></p>
+                <p>Uptime: <span id="uptime"></span></p>
+            </div>
+            <h1 class="title">temperature chart</h1>
+            <div class="ct-chart"></div>
         </section>
 
+        <script>
+            setInterval(function() {
+                $.ajax({
+                    url: "/control/info/temperature"
+                }).done(function (d) {
+                    $("#cpu_temperature").html(d + "°C");
+                });
+
+                $.ajax({
+                    url: "/control/info/uptime"
+                }).done(function (d) {
+                    $("#uptime").html(new Date(d * 1000).toISOString().substr(11, 8));
+                });
+            }, 5000);
+        </script>
         <script src="/dashboard/src/js/chartist.min.js"></script>
         <script>
             var dateAndTemperature = [];
@@ -33,28 +54,30 @@
             $.ajax({
                 url: "/control/info/temperature/all"
             }).done(function (d) {
+                dateAndTemperature = [];
                 var data = d.split("\n");
 
                 for(var i = 0; i < data.length; i++)
                     dateAndTemperature.push({meta: data[i].split("#")[0], value: parseInt(data[i].split("#")[1])})
+
+                var data = {
+                    series: [
+                        dateAndTemperature
+                    ]
+                };
+
+                var options = {
+                    fullWidth: true,
+                    height: 350,
+                    lineSmooth: false,
+                    showPoint: false,
+                    plugins: [
+                        Chartist.plugins.tooltip()
+                    ]
+                };
+
+                var ch = new Chartist.Line('.ct-chart', data, options);
             });
-
-            var data = {
-                series: [
-                    dateAndTemperature
-                ]
-            };
-
-            var options = {
-                fullWidth: true,
-                height: 200,
-                lineSmooth: false,
-                plugins: [
-                    Chartist.plugins.tooltip()
-                ]
-            };
-
-            new Chartist.Line('.ct-chart', data, options);
         </script>
     </body>
 </html>

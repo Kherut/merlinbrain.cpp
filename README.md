@@ -1,7 +1,12 @@
 # merlinbrain.go
 An open-source Merlin Brain client in Go.
 
-Compile with
+Firstly install Go CRON library
 ```
-go build main.go
+go get -v github.com/robfig/cron
+```
+
+Then run with
+```
+go run main.go
 ```
