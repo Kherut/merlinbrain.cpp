@@ -36,7 +36,7 @@
                 var data = d.split("\n");
 
                 for(var i = 0; i < data.length; i++)
-                    dateAndTemperature.push({meta: data[i].split("#")[0], value: parseInt(data[i].split("#")[0])})
+                    dateAndTemperature.push({meta: data[i].split("#")[0], value: parseInt(data[i].split("#")[1])})
             });
 
             var data = {
