@@ -28,18 +28,21 @@
 
         <script src="/dashboard/src/js/chartist.min.js"></script>
         <script>
-            var temperature = [];
+            var dateAndTemperature = [];
 
             $.ajax({
-                url: "/control/info/temperature"
+                url: "/control/info/temperature/all"
             }).done(function (d) {
-                temperature = d.split("\n");
+                var data = d.split("\n");
+
+                for(var i = 0; i < data.length; i++)
+                    dateAndTemperature.push({meta: data[i].split("#")[0], value: parseInt(data[i].split("#")[0])})
             });
 
             var data = {
                 labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
                 series: [
-                    temperature
+                    dateAndTemperature
                 ]
             };
 
