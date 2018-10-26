@@ -1,2 +1,0 @@
-{ "name": "new_device", "ip": "172.16.1.255", "role": "CLIENT", "value": "ON", "status": "OK", "connectedAt": "2018-10-26#16:40:00" }
-{ "name": "another_device", "ip": "172.16.1.1", "role": "SERVER", "value": "87", "status": "ERROR", "connectedAt": "2018-10-26#16:45:30" }

@@ -35,6 +35,14 @@ func newDevice(ip, name, role string) {
 	fmt.Println("IP: " + ip)
 	fmt.Println("Name: " + name)
 	fmt.Println("Role: " + role)
+
+	defaultValue := "OFF"
+	status := "OK"
+	currentTime := time.Now()
+
+	j := "\n{ \"name\": \"" + name + "\", \"ip\": \"" + ip + "\", \"role\": \"" + role + "\", \"value\": \"" + defaultValue + "\", \"status\": \"" + status + "\", \"connectedAt\": \"" + currentTime.Format("2006.01.02-15:04:05") + "\" }";
+
+	runCmd("echo '" + j + "' >> data/devices.data")
 }
 
 func main() {
@@ -47,10 +55,7 @@ func main() {
 
 		cmd := "echo " + currentTime.Format("2006.01.02-15:04:05") + "#" + strings.Split(runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp"), "\n")[0] + " >> ./data/temperature.data"
 
-		if counter > 255 {
-			runCmd("tail -n 255 data/temperature.data > data/temperature.tmp && mv data/temperature.tmp data/temperature.data")
-		}
-
+		runCmd("tail -n 48 data/temperature.data > data/temperature.tmp && mv data/temperature.tmp data/temperature.data")
 		runCmd(cmd)
 
 		counter += 1

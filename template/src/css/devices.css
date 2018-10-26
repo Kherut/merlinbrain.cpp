@@ -1,5 +1,5 @@
 .devices {
-    border: solid 2px black;
+    border: solid 1px black;
     display: block;
     width: 300px;
     position: absolute;
@@ -9,8 +9,7 @@
 }
 
 .devices div {
-    height: 60px;
-    width: 100%;
+    height: 40px;
     border-bottom: solid 1px black;
     padding: 10px 20px;
 }
@@ -23,26 +22,26 @@
     font-family: "Lane", monospace;
 }
 
-.devices div .name_ip {
-    float: left;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
 .devices div .name {
     color: black;
     font-size: 18px;
-    float: left;
+    position: absolute;
+    left: 15px;
+    margin-top: 2px;
 }
 
 .devices div .ip {
-    color: rgb(94, 94, 94);
+    color: rgb(110, 110, 110);
     font-size: 14px;
-    float: left;
+    position: absolute;
+    left: 15px;
+    margin-top: 24px;
 }
 
 .devices div .value {
     color: black;
     font-size: 18px;
-    float: right;
+    position: absolute;
+    right: 15px;
+    margin-top: 8px;
 }
