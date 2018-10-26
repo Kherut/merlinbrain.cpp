@@ -32,13 +32,20 @@
                 $.ajax({
                     url: "/control/devices/all/json"
                 }).done(function (d) {
-                    var devices = JSON.parse(d);
+                    var devicesStr = d.split("\n");
+                    var device;
 
-                    for(var i = 0; i < devices.length; i++) {
+                    $(".devices").html("");
+
+                    for(var i = 0; i < devicesStr.length; i++) {
+                        device = JSON.parse(devicesStr[i]);
+
                         $(".devices").append("<div>\
-                            <span class='name'>" + devices[i].name + "</span>\
-                            <span class='ip'>" + devices[i].ip + "</span>\
-                            <span class='value'>" + devices[i].value + "</span>\
+                            <span class='name_ip'>\
+                                <span class='name'>" + device.name + "</span>\
+                                <span class='ip'>" + device.ip + "</span>\
+                            </span>\
+                            <span class='value'>" + device.value + "</span>\
                         </div>");
                     }
                 });
