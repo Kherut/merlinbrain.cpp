@@ -6,9 +6,19 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+	"encoding/json"
 
 	"github.com/robfig/cron"
 )
+
+type Device struct {
+	Name string
+	IP string
+	Role string
+	Status string
+	Value string
+	ConnectedAt string
+}
 
 func redirectDashboard(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/dashboard/", 301)
@@ -19,6 +29,12 @@ func runCmd(cmd string) string {
 	_ = err
 
 	return string(out)
+}
+
+func newDevice(ip, name, role string) {
+	fmt.Println("IP: " + ip)
+	fmt.Println("Name: " + name)
+	fmt.Println("Role: " + role)
 }
 
 func main() {
@@ -86,6 +102,47 @@ func main() {
 			if len(output) > 0 {
 				w.Write([]byte("\n\nOutput: " + output))
 				fmt.Println(output)
+			}
+		} else if category == "devices" {
+			switch arg[0] {
+			case "new":
+				if len(arg) >= 4 {
+					ip := arg[1]
+					name := arg[2]
+					role := arg[3]
+
+					newDevice(ip, name, role)
+
+					w.Write([]byte("OK"))
+				} else {
+					w.Write([]byte("ERROR - Not enough arguments."))
+				}
+			case "all":
+				devicesStr := strings.Split(runCmd("cat data/devices.data"), "\n")
+
+				if len(arg) == 1 {
+					// ?
+
+					var cDevice Device
+
+					for _, element := range devicesStr {
+						if element != "" {
+							json.Unmarshal([]byte(element), &cDevice)
+
+							//w.Write([]byte(cDevice))
+						}
+					}
+				} else if len(arg) >= 2 && arg[1] == "json" {
+					for i, element := range devicesStr {
+						if element != "" {
+							if i > 0 {
+								w.Write([]byte("\n"))
+							}
+
+							w.Write([]byte(element))
+						}
+					}
+				}
 			}
 		}
 	})

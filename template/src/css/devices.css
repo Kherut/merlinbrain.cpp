@@ -1,0 +1,43 @@
+.devices {
+    border: solid 2px black;
+    display: block;
+    width: 300px;
+    height: 100%;
+}
+
+.devices div {
+    height: 60px;
+    width: 100%;
+    border-bottom: solid 1px black;
+    padding: 0;
+    margin: 0;
+}
+
+.devices div:last-child {
+    border-bottom: none;
+}
+
+.devices div span {
+    position: absolute;
+}
+
+.devices div .name {
+    color: black;
+    font-size: 18px;
+    top: 10px;
+    left: 20px;
+}
+
+.devices div .ip {
+    color: rgb(39, 39, 39);
+    font-size: 12px;
+    top: 36px;
+    left: 20px;
+}
+
+.devices div .value {
+    color: black;
+    font-size: 18px;
+    right: 20px;
+    top: 24px;
+}

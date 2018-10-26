@@ -5,6 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link href="/dashboard/src/css/style.css" rel="stylesheet" type="text/css" />
+        <link href="/dashboard/src/css/devices.css" rel="stylesheet" type="text/css" />
+
+        <script src="/dashboard/src/js/jquery.min.js"></script>
 
         <title>Merlin Brain</title>
     </head>
@@ -21,6 +24,25 @@
         </header>
         <section>
             <h1 class="title">devices</h1>
+            <div class="devices"></div>
         </section>
+
+        <script>
+            setInterval(function() {
+                $.ajax({
+                    url: "/control/devices/all/json"
+                }).done(function (d) {
+                    var devices = JSON.parse(d);
+
+                    for(var i = 0; i < devices.length; i++) {
+                        $(".devices").append("<div>\
+                            <span class='name'>" + devices[i].name + "</span>\
+                            <span class='ip'>" + devices[i].ip + "</span>\
+                            <span class='value'>" + devices[i].value + "</span>\
+                        </div>");
+                    }
+                });
+            }, 5000);
+        </script>
     </body>
 </html>
