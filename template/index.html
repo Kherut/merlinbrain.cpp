@@ -33,7 +33,7 @@
         </section>
 
         <script>
-            setInterval(function() {
+            function getData() {
                 $.ajax({
                     url: "/control/info/temperature"
                 }).done(function (d) {
@@ -45,6 +45,12 @@
                 }).done(function (d) {
                     $("#uptime").html(new Date(d * 1000).toISOString().substr(11, 8));
                 });
+            }
+
+            getData();
+
+            var intv = setInterval(function() {
+                getData();
             }, 5000);
         </script>
         <script src="/dashboard/src/js/chartist.min.js"></script>

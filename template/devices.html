@@ -28,7 +28,7 @@
         </section>
 
         <script>
-            var intv = setInterval(function() {
+            function getData() {
                 $.ajax({
                     url: "/control/devices/all/json"
                 }).done(function (d) {
@@ -38,15 +38,23 @@
                     $(".devices").html("");
 
                     for(var i = 0; i < devicesStr.length; i++) {
-                        device = JSON.parse(devicesStr[i]);
+                        if(devicesStr[i] != "") {
+                            device = JSON.parse(devicesStr[i]);
 
-                        $(".devices").append("<div>\
-                            <span class='name'>" + device.name + "</span>\
-                            <span class='ip'>" + device.ip + "</span>\
-                            <span class='value'>" + device.value + "</span>\
-                        </div>");
+                            $(".devices").append("<div>\
+                                <span class='name'>" + device.name + "</span>\
+                                <span class='ip'>" + device.ip + "</span>\
+                                <span class='status'>" + device.status + "</span>\
+                            </div>");
+                        }
                     }
                 });
+            }
+
+            getData();
+
+            var intv = setInterval(function() {
+                getData();
             }, 5000);
         </script>
     </body>
