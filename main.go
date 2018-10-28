@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
-	"encoding/json"
+	"net"
+	"strconv"
 
 	"github.com/robfig/cron"
 )
@@ -16,7 +18,6 @@ type Device struct {
 	IP string
 	Role string
 	Status string
-	Value string
 	ConnectedAt string
 }
 
@@ -31,21 +32,24 @@ func runCmd(cmd string) string {
 	return string(out)
 }
 
-func newDevice(ip, name, role string) {
-	fmt.Println("IP: " + ip)
-	fmt.Println("Name: " + name)
-	fmt.Println("Role: " + role)
+func getAvailablePort(start, max int) int {
+	for i := start; i < start + max; i++ {
+		conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", strconv.Itoa(i)), 750 * time.Millisecond)
 
-	defaultValue := "OFF"
-	status := "OK"
-	currentTime := time.Now()
+		_ = err
 
-	j := "\n{ \"name\": \"" + name + "\", \"ip\": \"" + ip + "\", \"role\": \"" + role + "\", \"value\": \"" + defaultValue + "\", \"status\": \"" + status + "\", \"connectedAt\": \"" + currentTime.Format("2006.01.02-15:04:05") + "\" }";
+		if conn != nil {
+			conn.Close()
+			return i
+		}
+	}
 
-	runCmd("echo '" + j + "' >> data/devices.data")
+	return -1
 }
 
 func main() {
+	var devices []Device
+
 	c := cron.New()
 
 	counter := 0
@@ -116,35 +120,31 @@ func main() {
 					name := arg[2]
 					role := arg[3]
 
-					newDevice(ip, name, role)
+					devices = append(devices, Device{Name: name, IP: ip, Role: role, Status: "UP", ConnectedAt: time.Now().Format("2006.01.02-15:04:05")})
 
-					w.Write([]byte("OK"))
+					w.Write([]byte(strconv.Itoa(getAvailablePort(51000, 256))))
 				} else {
 					w.Write([]byte("ERROR - Not enough arguments."))
 				}
 			case "all":
-				devicesStr := strings.Split(runCmd("cat data/devices.data"), "\n")
-
 				if len(arg) == 1 {
-					// ?
-
-					var cDevice Device
-
-					for _, element := range devicesStr {
-						if element != "" {
-							json.Unmarshal([]byte(element), &cDevice)
-
-							//w.Write([]byte(cDevice))
-						}
+					for _, element := range devices {
+						w.Write([]byte(element.Name + "\n"))
+						w.Write([]byte(element.IP + "\n"))
+						w.Write([]byte(element.Role + "\n"))
+						w.Write([]byte(element.Status + "\n"))
+						w.Write([]byte(element.ConnectedAt + "\n"))
+						w.Write([]byte("\n"))
 					}
 				} else if len(arg) >= 2 && arg[1] == "json" {
-					for i, element := range devicesStr {
-						if element != "" {
-							if i > 0 {
-								w.Write([]byte("\n"))
-							}
-
-							w.Write([]byte(element))
+					for _, element := range devices {
+						if element != (Device{"", "", "", "", ""}) {
+							w.Write([]byte("{ \"name\": \""))
+							w.Write([]byte(element.Name + "\", \"ip\": \""))
+							w.Write([]byte(element.IP + "\", \"role\": \""))
+							w.Write([]byte(element.Role + "\", \"status\": \""))
+							w.Write([]byte(element.Status + "\", \"connectedat\": \""))
+							w.Write([]byte(element.ConnectedAt + "\" }\n"))
 						}
 					}
 				}
@@ -153,6 +153,9 @@ func main() {
 	})
 
 	http.HandleFunc("/", redirectDashboard)
+
+	runCmd("kill -9 " + os.Args[2])
+	runCmd("echo 1 > /sys/class/leds/green_led/brightness")
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
