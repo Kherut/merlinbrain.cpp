@@ -34,6 +34,7 @@ func main() {
 	var devices []Device
 	development := true
 
+	//DEVELOPMENT
 	if !development {
 		c := cron.New()
 		counter := 0
@@ -75,16 +76,19 @@ func main() {
 			case "temperature":
 				if len(arg) > 1 {
 					if arg[1] == "all" {
+						//DEVELOPMENT
 						if !development {
 							w.Write([]byte(runCmd("cat ./data/temperature.data")))
 						}
 					}
 				} else {
+					//DEVELOPMENT
 					if !development {
 						w.Write([]byte(runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp")))
 					}
 				}
 			case "uptime":
+				//DEVELOPMENT
 				if !development {
 					w.Write([]byte(strings.Split(runCmd("cat /proc/uptime"), ".")[0]))
 				}
@@ -94,11 +98,13 @@ func main() {
 
 			switch arg[0] {
 			case "on":
+				//DEVELOPMENT
 				if !development {
 					cmd = "echo 1 > /sys/class/leds/red_led/brightness"
 				}
 
 			case "off":
+				//DEVELOPMENT
 				if !development {
 					cmd = "echo 0 > /sys/class/leds/red_led/brightness"
 				}
@@ -159,6 +165,7 @@ func main() {
 
 	http.HandleFunc("/", redirectDashboard)
 
+	//DEVELOPMENT
 	if !development {
 		runCmd("kill -9 " + os.Args[2])
 		runCmd("echo 1 > /sys/class/leds/green_led/brightness")
