@@ -68,8 +68,8 @@ func main() {
 			arg = strings.Split(command, "/")[1:]
 		}
 
-		fmt.Print(category + " -> ")
-		fmt.Println(arg)
+		//fmt.Print(category + " -> ")
+		//fmt.Println(arg)
 
 		if category == "info" {
 			switch arg[0] {
@@ -133,7 +133,15 @@ func main() {
 					min := fmt.Sprintf("%d", 40000)
 					max := fmt.Sprintf("%d", 41000)
 
-					w.Write([]byte(runCmd("./get_port " + min + " " + max)))
+					port := runCmd("./get_port " + min + " " + max)
+
+					w.Write([]byte(port))
+
+					if role == "CLIENT" {
+						if development {
+							runCmd("gnome-terminal -x sh -c 'netcat -l " + port + "'")
+						}
+					}
 				} else {
 					w.Write([]byte("ERROR - Not enough arguments."))
 				}

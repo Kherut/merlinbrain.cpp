@@ -7,9 +7,9 @@ $ go get -v github.com/robfig/cron
 $ git clone https://github.com/kherut-io/merlinbrain.go
 ```
 
-Compile `get_port.c`:
+Compile `get_port.cpp`:
 ```
-$ g++ get_port.c -o get_port
+$ g++ get_port.cpp -o get_port
 ```
 
 Make `run.sh` executable:
