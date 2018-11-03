@@ -7,8 +7,6 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-	"net"
-	"strconv"
 
 	"github.com/robfig/cron"
 )
@@ -32,40 +30,27 @@ func runCmd(cmd string) string {
 	return string(out)
 }
 
-func getAvailablePort(start, max int) int {
-	for i := start; i < start + max; i++ {
-		conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", strconv.Itoa(i)), 750 * time.Millisecond)
-
-		_ = err
-
-		if conn != nil {
-			conn.Close()
-			return i
-		}
-	}
-
-	return -1
-}
-
 func main() {
 	var devices []Device
+	development := true
 
-	c := cron.New()
+	if !development {
+		c := cron.New()
+		counter := 0
 
-	counter := 0
+		c.AddFunc("0 0 * * * *", func() {
+			currentTime := time.Now()
+	
+			cmd := "echo " + currentTime.Format("2006.01.02-15:04:05") + "#" + strings.Split(runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp"), "\n")[0] + " >> ./data/temperature.data"
+	
+			runCmd("tail -n 48 data/temperature.data > data/temperature.tmp && mv data/temperature.tmp data/temperature.data")
+			runCmd(cmd)
+	
+			counter += 1
+		})
 
-	c.AddFunc("0 0 * * * *", func() {
-		currentTime := time.Now()
-
-		cmd := "echo " + currentTime.Format("2006.01.02-15:04:05") + "#" + strings.Split(runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp"), "\n")[0] + " >> ./data/temperature.data"
-
-		runCmd("tail -n 48 data/temperature.data > data/temperature.tmp && mv data/temperature.tmp data/temperature.data")
-		runCmd(cmd)
-
-		counter += 1
-	})
-
-	c.Start()
+		c.Start()
+	}
 
 	//DASHBOARD AT /dashboard
 	http.Handle("/dashboard/", http.StripPrefix("/dashboard/", http.FileServer(http.Dir("template"))))
@@ -82,28 +67,41 @@ func main() {
 			arg = strings.Split(command, "/")[1:]
 		}
 
+		fmt.Print(category + " -> ")
+		fmt.Println(arg)
+
 		if category == "info" {
 			switch arg[0] {
 			case "temperature":
 				if len(arg) > 1 {
 					if arg[1] == "all" {
-						w.Write([]byte(runCmd("cat ./data/temperature.data")))
+						if !development {
+							w.Write([]byte(runCmd("cat ./data/temperature.data")))
+						}
 					}
 				} else {
-					w.Write([]byte(runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp")))
+					if !development {
+						w.Write([]byte(runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp")))
+					}
 				}
 			case "uptime":
-				w.Write([]byte(strings.Split(runCmd("cat /proc/uptime"), ".")[0]))
+				if !development {
+					w.Write([]byte(strings.Split(runCmd("cat /proc/uptime"), ".")[0]))
+				}
 			}
 		} else if category == "led" {
 			var cmd string
 
 			switch arg[0] {
 			case "on":
-				cmd = "echo 1 > /sys/class/leds/red_led/brightness"
+				if !development {
+					cmd = "echo 1 > /sys/class/leds/red_led/brightness"
+				}
 
 			case "off":
-				cmd = "echo 0 > /sys/class/leds/red_led/brightness"
+				if !development {
+					cmd = "echo 0 > /sys/class/leds/red_led/brightness"
+				}
 			}
 
 			output := runCmd(cmd)
@@ -122,7 +120,14 @@ func main() {
 
 					devices = append(devices, Device{Name: name, IP: ip, Role: role, Status: "UP", ConnectedAt: time.Now().Format("2006.01.02-15:04:05")})
 
-					w.Write([]byte(strconv.Itoa(getAvailablePort(51000, 256))))
+					fmt.Println(ip)
+					fmt.Println(name)
+					fmt.Println(role)
+
+					min := fmt.Sprintf("%d", 40000)
+					max := fmt.Sprintf("%d", 41000)
+
+					w.Write([]byte(runCmd("./get_port " + min + " " + max)))
 				} else {
 					w.Write([]byte("ERROR - Not enough arguments."))
 				}
@@ -154,8 +159,10 @@ func main() {
 
 	http.HandleFunc("/", redirectDashboard)
 
-	runCmd("kill -9 " + os.Args[2])
-	runCmd("echo 1 > /sys/class/leds/green_led/brightness")
+	if !development {
+		runCmd("kill -9 " + os.Args[2])
+		runCmd("echo 1 > /sys/class/leds/green_led/brightness")
+	}
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)

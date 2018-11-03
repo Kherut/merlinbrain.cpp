@@ -7,6 +7,11 @@ $ go get -v github.com/robfig/cron
 $ git clone https://github.com/kherut-io/merlinbrain.go
 ```
 
+Compile `get_port.c`:
+```
+$ gcc get_port.c -o get_port
+```
+
 Make `run.sh` executable:
 ```
 # chmod +x run.sh
