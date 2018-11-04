@@ -137,11 +137,20 @@ func main() {
 
 					w.Write([]byte(port))
 
+					var cmd string
+
 					if role == "CLIENT" {
 						if development {
-							runCmd("gnome-terminal -x sh -c 'netcat -l " + port + "'")
+							cmd = "gnome-terminal -x sh -c 'netcat -l " + port + "'"
+						}
+					} else if role == "SERVER" {
+						if development {
+							cmd = "gnome-terminal -x sh -c 'sleep 2.5; netcat " + ip + " " + port + "'"
 						}
 					}
+
+					w.(http.Flusher).Flush()
+					runCmd(cmd)
 				} else {
 					w.Write([]byte("ERROR - Not enough arguments."))
 				}
