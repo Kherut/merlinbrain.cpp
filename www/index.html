@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href="/dashboard/src/css/style.css" rel="stylesheet" type="text/css" />
+        <link href="/dashboard/src/css/devices.css" rel="stylesheet" type="text/css" />
+
+        <script src="/dashboard/src/js/jquery.min.js"></script>
+        <script src="/dashboard/src/js/socket.io.js"></script>
+
+        <title>Merlin Brain</title>
+    </head>
+    <body>
+        <header>
+            <a href="/dashboard/">
+                <img src="/dashboard/src/img/logo.png" class="logo" alt="Merlin Logo" title="Merlin" />
+            </a>
+            <nav class="menu">
+                <a href="/dashboard/">devices</a>
+                <a href="/dashboard/overview.html">overview</a>
+                <a href="/dashboard/advanced.html">advanced</a>
+            </nav>
+        </header>
+        <section>
+            <div class="devices"></div>
+        </section>
+
+        <script>
+            function hideDevices() {
+                console.log($(".devices").children().length);
+
+                if($(".devices").children().length == 0)
+                    $(".devices").css("display", "none");
+
+                else
+                    $(".devices").css("display", "auto");
+            }
+
+            function addDevice(json) {
+                var device = JSON.parse(json);
+
+                $(".devices").append("<div>\
+                    <span class='name'>" + device.name + "</span>\
+                    <span class='ip'>" + device.ip + "</span>\
+                    <span class='status'>" + device.status + "</span>\
+                </div>");
+            }
+
+            var socket = io();
+
+            socket.on('connect', function() {
+                console.log('Connected.');
+
+                setTimeout(function() {
+                    socket.emit("message", "devices/all/json");
+                }, 250);
+
+                socket.on('message', function(msg) {
+                    console.log(msg);
+
+                    var path = msg.split("///")[0];
+                    var content = msg.split("///")[1];
+
+                    var category = path.split("/")[0];
+
+                    var arguments = new Array();
+
+                    if(path.split("/").length > 1) {
+                        arguments = path.split("/");
+                        arguments.splice(0, 1);
+                    }
+
+                    switch(category) {
+                        case "devices":
+                            if(arguments.length >= 1) {
+                                if(arguments[0] == "new")
+                                    addDevice(content);
+                                else if(arguments[0] == "all") {
+                                    if(arguments.length >= 2 && arguments[1] == "json") {
+                                        var devicesJSON = content.split("\n");
+
+                                        for(var i = 0; i < devicesJSON.length; i++) {
+                                            if(devicesJSON[i] != "")
+                                                addDevice(devicesJSON[i]);
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                });
+            });
+
+            $("body").on("DOMSubtreeModified", ".devices", function() {
+                hideDevices();
+            });
+        </script>
+    </body>
+</html>

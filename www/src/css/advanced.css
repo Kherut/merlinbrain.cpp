@@ -1,0 +1,57 @@
+.command_output {
+    display: block;
+    width: calc(60% - 20px);
+    height: 330px;
+    overflow: scroll;
+    border: solid 1px black;
+    margin: auto;
+    padding: 10px;
+    font-size: 14px;
+    font-family: monospace;
+}
+
+.command_span {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    margin-top: 4px;
+}
+
+.command {
+    margin: 0;
+    display: inline-block;
+    width: calc(60% - 86px);
+    height: 30px;
+    border: 1px solid transparent;
+    border-bottom-color: black;
+    font-family: "Lane", monospace;
+    font-size: 18px;
+    letter-spacing: 1px;
+    outline: none;
+    padding: 5px 15px;
+    transition: 0.15s all ease-in-out;
+}
+
+.command:focus {
+    border-color: black;
+}
+
+.command_send {
+    margin-right: 17px;
+    display: inline-block;
+    width: 42px;
+    height: 42px;
+    border: solid 1px black;
+    background: transparent;
+    font-family: "Lane", monospace;
+    font-size: 18px;
+    outline: none;
+    color: black;
+    cursor: pointer;
+    transition: 0.15s all ease-in-out;
+}
+
+.command_send:hover {
+    background: black;
+    color: white;
+}

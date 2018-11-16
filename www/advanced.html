@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href="/dashboard/src/css/style.css" rel="stylesheet" type="text/css" />
+        <link href="/dashboard/src/css/advanced.css" rel="stylesheet" type="text/css" />
+
+        <script src="/dashboard/src/js/jquery.min.js"></script>
+        <script src="/dashboard/src/js/socket.io.js"></script>
+
+        <title>Merlin Brain</title>
+    </head>
+    <body>
+        <header>
+            <a href="/dashboard/">
+                <img src="/dashboard/src/img/logo.png" class="logo" alt="Merlin Logo" title="Merlin" />
+            </a>
+            <nav class="menu">
+                <a href="/dashboard/">devices</a>
+                <a href="/dashboard/overview.html">overview</a>
+                <a href="/dashboard/advanced.html">advanced</a>
+            </nav>
+        </header>
+        <section>
+            <pre class="command_output"></pre>
+            <span class="command_span">
+                <input type="text" class="command" autocomplete="off" placeholder="command..." />
+                <button class="command_send">&rarr;</button>
+            </span>            
+        </section>
+
+        <script>
+            var socket = io();
+
+            socket.on('connect', function() {
+                console.log("Connected.");
+
+                socket.on("message", function(msg) {
+                    $(".command_output").text($(".command_output").text() + "\n" + msg.split("///")[1]);
+                });
+            });
+
+            $(".command_send").on("click", function() {
+                socket.emit("message", $(".command").val());
+                $(".command_output").text($(".command_output").text() + "> " + $(".command").val());
+
+                $(".command").val("");
+            });
+        </script>
+    </body>
+</html>
