@@ -11,6 +11,8 @@ import (
 
 	"github.com/robfig/cron"
 	"github.com/googollee/go-socket.io"
+	"github.com/micro/go-config"
+	"github.com/micro/go-config/source/file"
 )
 
 type Device struct {
@@ -32,14 +34,26 @@ func runCmd(cmd string) string {
 	return string(out)
 }
 
+func arr(array []string, index int) string {
+	if len(array) >= index + 1 {
+		return array[index]
+	}
+
+	return ""
+}
+
 func main() {
-	development := true
+	config.Load(file.NewSource(
+		file.WithPath("config.yaml"),
+	))
+
+	cfg := config.Map()
 
 	var devices []Device
 	var socket socketio.Socket
 
-	//DEVELOPMENT
-	if !development {
+	//DEVELOPMENT - CRON
+	if cfg["development"] == "false" {
 		c := cron.New()
 		counter := 0
 
@@ -60,7 +74,7 @@ func main() {
 	//DASHBOARD AT /dashboard
 	http.Handle("/dashboard/", http.StripPrefix("/dashboard/", http.FileServer(http.Dir("www"))))
 
-	//CONTROL AT /control (THERE'S ONLY devices/new IN THERE)
+	//CONTROL AT /control (THERE'S ONLY device/new IN THERE)
 	http.HandleFunc("/control/", func(w http.ResponseWriter, r *http.Request) {
 		command := strings.Join(strings.Split(r.URL.Path[1:], "/")[1:], "/")
 
@@ -72,7 +86,7 @@ func main() {
 			arg = strings.Split(command, "/")[1:]
 		}
 
-		if category == "devices" {
+		if category == "device" {
 			if len(arg) > 0 {
 				if (arg[0] == "new" && len(arg) >= 4) {
 					ip := arg[1]
@@ -89,16 +103,16 @@ func main() {
 
 					w.Write([]byte(port))
 
-					socket.Emit("message", command + "///" + "{\"name\": \"" + name + "\", \"ip\": \"" + ip + "\", \"role\": \"" + role + "\", \"status\": \"" + "UP" + "\", \"connectedat\": \"" + connectedat + "\"}")
+					socket.Emit("message", command + "@" + "{\"name\": \"" + name + "\", \"ip\": \"" + ip + "\", \"role\": \"" + role + "\", \"status\": \"" + "UP" + "\", \"connectedat\": \"" + connectedat + "\"}")
 
 					var cmd string
 
 					if role == "CLIENT" {
-						if development {
+						if cfg["development"] == "true" {
 							cmd = "gnome-terminal -x sh -c 'netcat -l " + port + "'"
 						}
 					} else if role == "SERVER" {
-						if development {
+						if cfg["development"] == "true" {
 							cmd = "gnome-terminal -x sh -c 'sleep 2.5; netcat " + ip + " " + port + "'"
 						}
 					}
@@ -125,28 +139,23 @@ func main() {
 				arg = strings.Split(msg, "/")[1:]
 			}
 
-			fmt.Print(category + " -> ")
-			fmt.Println(arg)
-
 			if category == "info" {
 				switch arg[0] {
 				case "temperature":
-					if len(arg) > 1 {
-						if arg[1] == "all" {
-							//DEVELOPMENT
-							if !development {
-								sio.Emit("message", runCmd("cat ./data/temperature.data"))
-							}
+					if arr(arg, 1) == "all" {
+						//DEVELOPMENT
+						if cfg["development"] == "false" {
+							socket.Emit("message", runCmd("cat ./data/temperature.data"))
 						}
 					} else {
 						//DEVELOPMENT
-						if !development {
-							sio.Emit("message", runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp"))
+						if cfg["development"] == "false" {
+							socket.Emit("message", runCmd("cat /sys/devices/virtual/thermal/thermal_zone0/temp"))
 						}
 					}
 				case "uptime":
 					//DEVELOPMENT
-					if !development {
+					if cfg["development"] == "false" {
 						sio.Emit("message", strings.Split(runCmd("cat /proc/uptime"), ".")[0])
 					}
 				}
@@ -156,24 +165,24 @@ func main() {
 				switch arg[0] {
 				case "on":
 					//DEVELOPMENT
-					if !development {
+					if cfg["development"] == "false" {
 						cmd = "echo 1 > /sys/class/leds/red_led/brightness"
 					}
 
 				case "off":
 					//DEVELOPMENT
-					if !development {
+					if cfg["development"] == "false" {
 						cmd = "echo 0 > /sys/class/leds/red_led/brightness"
 					}
 				}
 
 				_ = runCmd(cmd)
-			} else if category == "devices" {
-				if len(arg) == 1 {
+			} else if category == "device" {
+				if arr(arg, 0) == "all" {
 					var text bytes.Buffer
 
 					text.WriteString(msg)
-					text.WriteString("///")
+					text.WriteString("@")
 
 					for _, element := range devices {
 						text.WriteString(element.Name + "\n")
@@ -184,11 +193,11 @@ func main() {
 					}
 
 					socket.Emit("message", text.String())
-				} else if len(arg) >= 2 && arg[1] == "json" {
+				} else if arr(arg, 0) == "all" && arr(arg, 1) == "json" {
 					var text bytes.Buffer
 
 					text.WriteString(msg)
-					text.WriteString("///")
+					text.WriteString("@")
 
 					for _, element := range devices {
 						if element != (Device{"", "", "", "", ""}) {
@@ -212,7 +221,7 @@ func main() {
 	http.HandleFunc("/", redirectDashboard)
 
 	//DEVELOPMENT
-	if !development {
+	if cfg["development"] == "false" {
 		runCmd("kill -9 " + os.Args[2])
 		runCmd("echo 1 > /sys/class/leds/green_led/brightness")
 	}

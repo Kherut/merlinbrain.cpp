@@ -60,10 +60,10 @@
                 socket.on('message', function(msg) {
                     console.log(msg);
 
-                    var path = msg.split("///")[0];
-                    var content = msg.split("///")[1];
+                    var path = msg.split("@")[0]
+                    var content = msg.split("@")[1]
 
-                    var category = path.split("/")[0];
+                    var category = path.split("/")[0]
 
                     var arguments = new Array();
 
@@ -77,6 +77,7 @@
                             if(arguments.length >= 1) {
                                 if(arguments[0] == "new")
                                     addDevice(content);
+                                
                                 else if(arguments[0] == "all") {
                                     if(arguments.length >= 2 && arguments[1] == "json") {
                                         var devicesJSON = content.split("\n");
