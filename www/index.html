@@ -24,7 +24,7 @@
             </nav>
         </header>
         <section>
-            <div class="devices"></div>
+            <div class="devices" style="display: none;"></div>
         </section>
 
         <script>
@@ -35,7 +35,7 @@
                     $(".devices").css("display", "none");
 
                 else
-                    $(".devices").css("display", "auto");
+                    $(".devices").css("display", "block");
             }
 
             function addDevice(json) {

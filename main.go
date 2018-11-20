@@ -52,6 +52,8 @@ func main() {
 	var devices []Device
 	var socket socketio.Socket
 
+	connected := 0
+
 	//DEVELOPMENT - CRON
 	if cfg["development"] == "false" {
 		c := cron.New()
@@ -74,7 +76,7 @@ func main() {
 	//DASHBOARD AT /dashboard
 	http.Handle("/dashboard/", http.StripPrefix("/dashboard/", http.FileServer(http.Dir("www"))))
 
-	//CONTROL AT /control (THERE'S ONLY device/new IN THERE)
+	//CONTROL AT /control (THERE'S ONLY devices/new IN THERE)
 	http.HandleFunc("/control/", func(w http.ResponseWriter, r *http.Request) {
 		command := strings.Join(strings.Split(r.URL.Path[1:], "/")[1:], "/")
 
@@ -86,7 +88,7 @@ func main() {
 			arg = strings.Split(command, "/")[1:]
 		}
 
-		if category == "device" {
+		if category == "devices" {
 			if len(arg) > 0 {
 				if (arg[0] == "new" && len(arg) >= 4) {
 					ip := arg[1]
@@ -103,7 +105,9 @@ func main() {
 
 					w.Write([]byte(port))
 
-					socket.Emit("message", command + "@" + "{\"name\": \"" + name + "\", \"ip\": \"" + ip + "\", \"role\": \"" + role + "\", \"status\": \"" + "UP" + "\", \"connectedat\": \"" + connectedat + "\"}")
+					if connected > 0 {
+						socket.Emit("message", command + "@" + "{\"name\": \"" + name + "\", \"ip\": \"" + ip + "\", \"role\": \"" + role + "\", \"status\": \"" + "UP" + "\", \"connectedat\": \"" + connectedat + "\"}")
+					}
 
 					var cmd string
 
@@ -128,6 +132,7 @@ func main() {
 	srvSio, _ := socketio.NewServer(nil)
 
 	srvSio.On("connection", func(sio socketio.Socket) {
+		connected = connected + 1
 		socket = sio
 
 		socket.On("message", func(msg string) {
@@ -177,8 +182,8 @@ func main() {
 				}
 
 				_ = runCmd(cmd)
-			} else if category == "device" {
-				if arr(arg, 0) == "all" {
+			} else if category == "devices" {
+				if arr(arg, 0) == "all" && len(arg) == 1 {
 					var text bytes.Buffer
 
 					text.WriteString(msg)
@@ -205,10 +210,13 @@ func main() {
 						}
 					}
 
-					fmt.Println(text.String())
 					socket.Emit("message", text.String())
 				}
 			}
+		})
+
+		socket.On("disconnection", func() {
+			connected = connected - 1
 		})
 	})
 
