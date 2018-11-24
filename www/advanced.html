@@ -38,7 +38,7 @@
                 console.log("Connected.");
 
                 socket.on("message", function(msg) {
-                    $(".command_output").text($(".command_output").text() + "\n" + msg.split("@")[1]);
+                    $(".command_output").text($(".command_output").text() + "\n" + msg.split("!")[1]);
                 });
             });
 

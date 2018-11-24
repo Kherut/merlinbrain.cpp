@@ -8,6 +8,7 @@
         <link href="/dashboard/src/css/devices.css" rel="stylesheet" type="text/css" />
 
         <script src="/dashboard/src/js/jquery.min.js"></script>
+        <script src="/dashboard/src/js/jquery.timeago.js"></script>
         <script src="/dashboard/src/js/socket.io.js"></script>
 
         <title>Merlin Brain</title>
@@ -28,9 +29,18 @@
         </section>
 
         <script>
-            function hideDevices() {
-                console.log($(".devices").children().length);
+            var devices = new Array();
 
+            function getDeviceWhere(key, val) {
+                for(var i = 0; i < devices.length; i++) {
+                    if(devices[i][key] == val)
+                        return devices[i];
+                }
+
+                return null;
+            }
+
+            function hideDevices() {
                 if($(".devices").children().length == 0)
                     $(".devices").css("display", "none");
 
@@ -40,13 +50,21 @@
 
             function addDevice(json) {
                 var device = JSON.parse(json);
+                devices.push(device);
 
-                $(".devices").append("<div>\
-                    <span class='name'>" + device.name + "</span>\
-                    <span class='ip'>" + device.ip + "</span>\
-                    <span class='status'>" + device.status + "</span>\
+                $(".devices").append("<div id='" + device.ID + "' title='Time: " + device.TimeConnected + "\nID: " + device.ID + "'>\
+                    <span class='name'>" + device.Name + "</span>\
+                    <span class='ip'>" + device.IP + "</span>\
+                    <span class='status'>" + device.Status + "</span>\
                 </div>");
             }
+
+            $("body").on("mouseover", ".devices div", function() {
+                var device = getDeviceWhere("ID", $(this).attr("title").split("\n")[1].split(" ")[1]);
+                var text = "Time: " + $.timeago(new Date(device.TimeConnected)) + "\nID: " + device.ID;
+
+                $(this).attr("title", text);
+            });
 
             var socket = io();
 
@@ -58,10 +76,10 @@
                 }, 250);
 
                 socket.on('message', function(msg) {
-                    console.log(msg);
+                    //console.log(msg);
 
-                    var path = msg.split("@")[0]
-                    var content = msg.split("@")[1]
+                    var path = msg.split("!")[0]
+                    var content = msg.split("!")[1]
 
                     var category = path.split("/")[0]
 
@@ -72,24 +90,32 @@
                         arguments.splice(0, 1);
                     }
 
-                    switch(category) {
-                        case "devices":
-                            if(arguments.length >= 1) {
-                                if(arguments[0] == "new")
-                                    addDevice(content);
-                                
-                                else if(arguments[0] == "all") {
-                                    if(arguments.length >= 2 && arguments[1] == "json") {
-                                        var devicesJSON = content.split("\n");
+                    if(path == "change") {
+                        var device = JSON.parse(content);
 
-                                        for(var i = 0; i < devicesJSON.length; i++) {
-                                            if(devicesJSON[i] != "")
-                                                addDevice(devicesJSON[i]);
+                        $(".devices #" + device.ID).find(".status")[0].innerHTML = device.Status;
+                    }
+
+                    else {
+                        switch(category) {
+                            case "devices":
+                                if(arguments.length >= 1) {
+                                    if(arguments[0] == "new")
+                                        addDevice(content);
+                                    
+                                    else if(arguments[0] == "all") {
+                                        if(arguments.length >= 2 && arguments[1] == "json") {
+                                            var devicesJSON = content.split("\n");
+
+                                            for(var i = 0; i < devicesJSON.length; i++) {
+                                                if(devicesJSON[i] != "")
+                                                    addDevice(devicesJSON[i]);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            break;
+                                break;
+                        }
                     }
                 });
             });

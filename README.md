@@ -2,9 +2,11 @@
 An open-source Merlin Brain client in Go.
 
 ## Compile
-Firstly install Go CRON library and clone this repository:
+Firstly install necessary Go libraries and clone this repository:
 ```
 $ go get -v github.com/robfig/cron
+$ go get -v github.com/googollee/go-socket.io
+$ go get -v github.com/micro/go-config
 $ git clone https://github.com/kherut-io/merlinbrain.go
 ```
 
@@ -26,13 +28,13 @@ $ ./run.sh
 ```
 
 ### Run *Brain* in development mode
-In `main.go` find line
+In `config.yaml` find line
 ```
-development := false
+development: false
 ```
-and change it to
+and set it to
 ```
-development := true
+development: true
 ```
 
 Now run using

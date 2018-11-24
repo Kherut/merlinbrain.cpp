@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 	"bytes"
+	"math/rand"
+	"encoding/json"
 
 	"github.com/robfig/cron"
 	"github.com/googollee/go-socket.io"
@@ -16,11 +18,12 @@ import (
 )
 
 type Device struct {
+	ID string
 	Name string
 	IP string
 	Role string
 	Status string
-	ConnectedAt string
+	TimeConnected string
 }
 
 func redirectDashboard(w http.ResponseWriter, r *http.Request) {
@@ -48,6 +51,8 @@ func main() {
 	))
 
 	cfg := config.Map()
+
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	var devices []Device
 	var socket socketio.Socket
@@ -89,40 +94,79 @@ func main() {
 		}
 
 		if category == "devices" {
-			if len(arg) > 0 {
-				if (arg[0] == "new" && len(arg) >= 4) {
-					ip := arg[1]
-					name := arg[2]
-					role := arg[3]
-					connectedat := time.Now().Format("2006.01.02-15:04:05")
+			if (arr(arg, 0) == "new" && len(arg) >= 4) {
+				ip_val := arg[1]
+				name_val := arg[2]
+				role_val := arg[3]
+				time_connected_val := time.Now().Format("2006.01.02 15:04:05")
 
-					devices = append(devices, Device{Name: name, IP: ip, Role: role, Status: "UP", ConnectedAt: connectedat})
+				//GENERATE UID FOR THE DEVICE (PROBABILITY OF REPEATING A UID IS 1/62^[id_length])
+				const letterBytes = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 
-					min := fmt.Sprintf("%d", 40000)
-					max := fmt.Sprintf("%d", 41000)
+				id_length, _ := cfg["id_length"].(json.Number).Int64()
 
-					port := runCmd("./get_port " + min + " " + max)
+				b := make([]byte, id_length)
 
-					w.Write([]byte(port))
+				for i := range b {
+					b[i] = letterBytes[rand.Intn(len(letterBytes))]
+				}
 
-					if connected > 0 {
-						socket.Emit("message", command + "@" + "{\"name\": \"" + name + "\", \"ip\": \"" + ip + "\", \"role\": \"" + role + "\", \"status\": \"" + "UP" + "\", \"connectedat\": \"" + connectedat + "\"}")
+				id_val := string(b)
+
+				devices = append(devices, Device{ID: id_val, Name: name_val, IP: ip_val, Role: role_val, Status: "UP", TimeConnected: time_connected_val})
+
+				min := fmt.Sprintf("%d", 40000)
+				max := fmt.Sprintf("%d", 41000)
+
+				port := runCmd("./get_port " + min + " " + max)
+
+				w.Write([]byte(id_val + "!" + port))
+
+				deviceB, _ := json.Marshal(devices[len(devices) - 1])
+				deviceStr := string(deviceB)
+
+				fmt.Println(deviceStr)
+
+				if connected > 0 {
+					socket.Emit("message", command + "!" + deviceStr)
+				}
+
+				var cmd string
+
+				if role_val == "CLIENT" {
+					if cfg["development"] == true {
+						fmt.Println("INS ROLE_VAL: " + role_val)
+						cmd = "gnome-terminal -x sh -c 'netcat -l " + port + "'"
 					}
+				} else if role_val == "SERVER" {
+					if cfg["development"] == true {
+						cmd = "gnome-terminal -x sh -c 'sleep 2.5; netcat " + ip_val + " " + port + "'"
+					}
+				}
 
-					var cmd string
+				w.(http.Flusher).Flush()
 
-					if role == "CLIENT" {
-						if cfg["development"] == "true" {
-							cmd = "gnome-terminal -x sh -c 'netcat -l " + port + "'"
-						}
-					} else if role == "SERVER" {
-						if cfg["development"] == "true" {
-							cmd = "gnome-terminal -x sh -c 'sleep 2.5; netcat " + ip + " " + port + "'"
+				fmt.Println(cmd)
+
+				runCmd(cmd)
+			} else if (arr(arg, 0) == "status" && len(arg) >= 3) {
+				var i int
+
+				for i = range devices {
+					if devices[i].ID == arg[1] {
+						devices[i].Status = arg[2];
+
+						w.Write([]byte("OK"))
+
+						if(connected > 0) {
+							b, _ := json.Marshal(devices[i])
+							changeText := string(b)
+
+							fmt.Println("change!" + changeText)
+
+							socket.Emit("message", "change!" + changeText)
 						}
 					}
-
-					w.(http.Flusher).Flush()
-					runCmd(cmd)
 				}
 			}
 		}
@@ -187,14 +231,15 @@ func main() {
 					var text bytes.Buffer
 
 					text.WriteString(msg)
-					text.WriteString("@")
+					text.WriteString("!")
 
 					for _, element := range devices {
+						text.WriteString(element.ID + "\n")
 						text.WriteString(element.Name + "\n")
 						text.WriteString(element.IP + "\n")
 						text.WriteString(element.Role + "\n")
 						text.WriteString(element.Status + "\n")
-						text.WriteString(element.ConnectedAt + "\n")
+						text.WriteString(element.TimeConnected + "\n")
 					}
 
 					socket.Emit("message", text.String())
@@ -202,11 +247,14 @@ func main() {
 					var text bytes.Buffer
 
 					text.WriteString(msg)
-					text.WriteString("@")
+					text.WriteString("!")
 
 					for _, element := range devices {
-						if element != (Device{"", "", "", "", ""}) {
-							text.WriteString("{ \"name\": \"" + element.Name + "\", \"ip\": \"" + element.IP + "\", \"role\": \"" + element.Role + "\", \"status\": \"" + element.Status + "\", \"connectedat\": \"" + element.ConnectedAt + "\" }\n")
+						if element != (Device{"", "", "", "", "", ""}) {
+							deviceB, _ := json.Marshal(element)
+							deviceStr := string(deviceB)
+
+							text.WriteString(deviceStr + "\n")
 						}
 					}
 
