@@ -1,2 +1,7 @@
 development: true
-id_length: 4
+idLength: 4
+keyLength: 32
+
+# LOGS
+logging: true
+logFile: logfile.log

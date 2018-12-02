@@ -52,11 +52,19 @@
                 var device = JSON.parse(json);
                 devices.push(device);
 
-                $(".devices").append("<div id='" + device.ID + "' title='Time: " + device.TimeConnected + "\nID: " + device.ID + "'>\
+                var classD = "";
+
+                if(device["Approved"] == false) classD = "napproved";
+
+
+                $(".devices").append("<div class='" + classD + "' id='" + device.ID + "' title='Time: " + device.TimeConnected + "\nID: " + device.ID + "'>\
                     <span class='name'>" + device.Name + "</span>\
                     <span class='ip'>" + device.IP + "</span>\
                     <span class='status'>" + device.Status + "</span>\
                 </div>");
+
+                if(confirm("A new device wants to connect. Do you want me to accept the connection?"))
+                    $(".devices #" + device.ID).removeClass("napproved");
             }
 
             $("body").on("mouseover", ".devices div", function() {
@@ -94,6 +102,9 @@
                         var device = JSON.parse(content);
 
                         $(".devices #" + device.ID).find(".status")[0].innerHTML = device.Status;
+
+                        if(device.Approved == true)
+                            $(".devices #" + device.ID).removeClass("napproved");
                     }
 
                     else {
