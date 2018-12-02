@@ -4,7 +4,7 @@
 }
 
 body {
-    background: white;
+    background: #131313;
     margin-top: 195px;
 }
 
@@ -19,7 +19,6 @@ header .logo {
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    filter: invert(1);
 }
 
 header .menu {
@@ -31,7 +30,7 @@ header .menu {
 }
 
 header .menu a {
-    color: black;
+    color: #f2f2f2;
     text-decoration: none;
     font-size: 22px;
     font-family: "Lane", monospace;
@@ -43,15 +42,15 @@ header .menu a {
 }
 
 header .menu a:hover {
-    border-bottom-color: black;
-    border-top-color: black;
+    border-bottom-color: #f2f2f2;
+    border-top-color: #f2f2f2;
 }
 
 header .menu::before {
     content: "";
     width: 250px;
     height: 1px;
-    background: black;
+    background: #f2f2f2;
     display: block;
     position: absolute;
     top: -15px;
@@ -63,7 +62,7 @@ header .menu::after {
     content: "";
     width: 150px;
     height: 1px;
-    background: black;
+    background: #f2f2f2;
     display: block;
     position: absolute;
     bottom: -16px;

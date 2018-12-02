@@ -56,15 +56,16 @@
 
                 if(device["Approved"] == false) classD = "napproved";
 
-
-                $(".devices").append("<div class='" + classD + "' id='" + device.ID + "' title='Time: " + device.TimeConnected + "\nID: " + device.ID + "'>\
+                $(".devices").append("<div class='" + classD + " " + device.Status.toLowerCase() + "' id='" + device.ID + "' title='Time: " + device.TimeConnected + "\nID: " + device.ID + "'>\
                     <span class='name'>" + device.Name + "</span>\
                     <span class='ip'>" + device.IP + "</span>\
                     <span class='status'>" + device.Status + "</span>\
                 </div>");
 
-                if(confirm("A new device wants to connect. Do you want me to accept the connection?"))
-                    $(".devices #" + device.ID).removeClass("napproved");
+                if(!device.Approved) {
+                    if(confirm("A new device wants to connect. Do you want me to accept the connection?"))
+                        socket.emit("message", "devices/approve/" + device.ID);
+                }   
             }
 
             $("body").on("mouseover", ".devices div", function() {
@@ -100,7 +101,11 @@
 
                     if(path == "change") {
                         var device = JSON.parse(content);
+                        var prevStatus = $(".devices #" + device.ID).find(".status")[0].innerHTML;
 
+                        $(".devices #" + device.ID).removeClass(prevStatus.toLowerCase());
+                        
+                        $(".devices #" + device.ID).addClass(device.Status.toLowerCase());
                         $(".devices #" + device.ID).find(".status")[0].innerHTML = device.Status;
 
                         if(device.Approved == true)
